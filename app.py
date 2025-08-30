@@ -2,7 +2,7 @@ import os
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, StickerSendMessage
 from dotenv import load_dotenv
 from datetime import datetime
 
@@ -41,9 +41,18 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    send_message = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    # line_bot_api.reply_message(event.reply_token, TextSendMessage(text=event.message.text))
-    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=send_message))
+    # ユーザーのメッセージを取得
+    user_message = event.message.text
+
+    # 特定のキーワードでスタンプを送信
+    if "スタンプ" in user_message or "stamp" in user_message.lower():
+        # スタンプを送信（パッケージID: 11537, スタンプID: 52002734 は例）
+        sticker_message = StickerSendMessage(package_id="11537", sticker_id="52002734")
+        line_bot_api.reply_message(event.reply_token, sticker_message)
+    else:
+        # 通常の日時メッセージを送信
+        send_message = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=send_message))
 
 
 if __name__ == "__main__":
